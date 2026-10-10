@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Safari - Teen Budgeting Adventure</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        safari: {
+                            sand: '#F7F3E9',
+                            khaki: '#E2D4B7',
+                            gold: '#E5A93C',
+                            terracotta: '#D96B43',
+                            leaf: '#3A6B4C',
+                            darkleaf: '#1F3A29',
+                            bark: '#2C1E16',
+                            sunset: '#FF8C42',
+                            night: '#15100C'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        body: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #15100C;
+            background-image: radial-gradient(#3A6B4C 0.75px, transparent 0.75px), radial-gradient(#3A6B4C 0.75px, #15100C 0.75px);
+            background-size: 28px 28px;
+            background-position: 0 0, 14px 14px;
+        }
+
+        .font-display {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #15100C;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E5A93C;
+            border-radius: 9999px;
+        }
+
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-gentle {
+            animation: bounce-gentle 2.2s infinite ease-in-out;
+        }
+
+        .badge-locked {
+            filter: grayscale(1) opacity(0.35);
+        }
+    </style>
+</head>
+<body class="text-safari-sand min-h-screen flex flex-col justify-between selection:bg-safari-gold selection:text-safari-bark">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-safari-darkleaf/95 backdrop-blur-md border-b-4 border-safari-gold shadow-2xl">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div id="header-avatar" class="w-12 h-12 bg-safari-gold rounded-2xl flex items-center justify-center text-safari-bark text-2xl shadow-lg transform -rotate-3 border-2 border-safari-sand cursor-pointer" onclick="openAvatarModal()" title="Change Safari Avatar">
+                    🦁
+                </div>
+                <div>
+                    <h1 class="font-display text-2xl md:text-3xl font-bold tracking-wide text-safari-gold flex items-center gap-2">
+                        BUDGET SAFARI <span class="text-[10px] bg-safari-terracotta text-white px-2 py-0.5 rounded-full font-body uppercase tracking-wider hidden sm:inline-block">Teen Edition</span>
+                    </h1>
+                    <p class="text-xs text-safari-khaki/80 hidden sm:block">Track cash. Hunt savings. Conquer the wilderness!</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Streak Counter -->
+                <div id="streak-badge" class="bg-safari-bark/90 border-2 border-safari-sunset px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-bold text-safari-sunset hidden">
+                    <i class="fa-solid fa-fire text-amber-500 animate-bounce-gentle"></i>
+                    <span id="streak-counter-text">1 Day Streak</span>
+                </div>
+
+                <!-- SFX Toggle -->
+                <button id="sound-btn" onclick="toggleSound()" class="w-10 h-10 bg-safari-bark/80 border border-safari-gold/40 hover:border-safari-gold rounded-xl flex items-center justify-center text-safari-gold transition-all" title="Toggle SFX">
+                    <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                </button>
+
+                <!-- User Account Info & Logout -->
+                <div id="user-header-section" class="hidden flex items-center gap-2 pl-2 border-l border-safari-khaki/20">
+                    <span id="user-display-name" class="text-xs font-bold text-safari-gold hidden md:inline-block">Ranger</span>
+                    <button onclick="logout()" class="bg-safari-terracotta hover:bg-red-600 text-white font-bold text-xs px-3 py-2 rounded-xl transition-all flex items-center gap-1 shadow-md" title="Sign Out">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Authentication Container (Shown when logged out) -->
+    <div id="auth-screen" class="max-w-md w-full mx-auto my-auto p-4 py-8">
+        <div class="bg-safari-darkleaf/90 border-2 border-safari-gold rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+            <!-- Decorative Safari Accent -->
+            <div class="absolute -right-8 -top-8 text-8xl opacity-10 select-none">🌴</div>
+
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-safari-gold rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-xl border-4 border-safari-sand transform -rotate-3 mb-3">
+                    🦒
+                </div>
+                <h2 id="auth-title" class="font-display text-3xl font-bold text-safari-gold">Ranger Login</h2>
+                <p id="auth-subtitle" class="text-xs text-safari-khaki mt-1">Welcome back to your budgeting safari adventure!</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Ranger Username</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-safari-gold/70"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="login-username" required placeholder="e.g. SafariAlex"
+                               class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl pl-9 pr-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Passcode</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-safari-gold/70"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="login-password" required placeholder="••••••••"
+                               class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl pl-9 pr-10 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                        <button type="button" onclick="togglePasswordVisibility('login-password')" class="absolute right-3 top-3 text-safari-khaki/70 hover:text-safari-gold">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="auth-error" class="text-xs text-safari-terracotta bg-safari-terracotta/10 border border-safari-terracotta/30 p-2.5 rounded-xl hidden text-center font-bold"></div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-safari-gold to-safari-sunset hover:from-amber-400 hover:to-orange-400 text-safari-bark font-display font-bold text-lg py-3 rounded-2xl shadow-lg transition-transform active:scale-[0.99] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-compass"></i> Enter Safari
+                </button>
+            </form>
+
+            <!-- Sign Up Form (Hidden by default) -->
+            <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Create Username</label>
+                    <input type="text" id="signup-username" required placeholder="Choose a ranger name"
+                           class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl px-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Create Passcode</label>
+                    <div class="relative">
+                        <input type="password" id="signup-password" required placeholder="At least 4 characters"
+                               class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl pl-3 pr-10 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                        <button type="button" onclick="togglePasswordVisibility('signup-password')" class="absolute right-3 top-3 text-safari-khaki/70 hover:text-safari-gold">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Starting Monthly Allowance ($)</label>
+                    <input type="number" id="signup-allowance" required min="0" step="5" value="150"
+                           class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl px-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                </div>
+
+                <div id="signup-error" class="text-xs text-safari-terracotta bg-safari-terracotta/10 border border-safari-terracotta/30 p-2.5 rounded-xl hidden text-center font-bold"></div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-safari-gold to-safari-sunset hover:from-amber-400 hover:to-orange-400 text-safari-bark font-display font-bold text-lg py-3 rounded-2xl shadow-lg transition-transform active:scale-[0.99] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-safari-khaki/20 text-center">
+                <button id="auth-toggle-btn" onclick="toggleAuthMode()" class="text-xs text-safari-gold hover:underline font-bold">
+                    Need an account? Sign Up Here
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Container (Shown when logged in) -->
+    <main id="app-screen" class="max-w-6xl mx-auto px-4 pt-6 w-full space-y-6 hidden">
+
+        <!-- Top Overview Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Income Card -->
+            <div class="bg-gradient-to-br from-safari-leaf to-safari-darkleaf border-2 border-safari-gold/40 p-5 rounded-3xl shadow-xl relative overflow-hidden group hover:border-safari-gold transition-all">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-safari-khaki">Monthly Allowance</span>
+                    <button onclick="openSetIncomeModal()" class="text-xs text-safari-gold hover:underline font-semibold"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
+                <div class="text-3xl font-display font-bold text-white mb-2" id="display-income">$0.00</div>
+                <div class="text-xs text-safari-khaki flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                    <span>Base Safari Resources</span>
+                </div>
+            </div>
+
+            <!-- Total Spent Card -->
+            <div class="bg-gradient-to-br from-safari-leaf to-safari-darkleaf border-2 border-safari-terracotta/40 p-5 rounded-3xl shadow-xl relative overflow-hidden group hover:border-safari-terracotta transition-all">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-safari-khaki">Total Spent</span>
+                    <span id="spent-percent-tag" class="text-xs font-bold px-2 py-0.5 rounded-full bg-safari-terracotta/30 text-safari-sunset border border-safari-terracotta/50">0%</span>
+                </div>
+                <div class="text-3xl font-display font-bold text-safari-sunset mb-2" id="display-spent">$0.00</div>
+                <div class="w-full bg-safari-bark/80 h-2 rounded-full overflow-hidden border border-safari-khaki/20">
+                    <div id="spent-progress-bar" class="bg-safari-terracotta h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Safe Cash Balance -->
+            <div class="bg-gradient-to-br from-safari-leaf to-safari-darkleaf border-2 border-safari-gold/40 p-5 rounded-3xl shadow-xl relative overflow-hidden group hover:border-safari-gold transition-all">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-safari-khaki">Remaining Balance</span>
+                    <span class="text-xs text-safari-gold font-bold"><i class="fa-solid fa-vault"></i> Safe</span>
+                </div>
+                <div class="text-3xl font-display font-bold text-safari-gold mb-2" id="display-remaining">$0.00</div>
+                <p id="remaining-status-msg" class="text-xs text-safari-khaki">You are in full control of your cash!</p>
+            </div>
+        </div>
+
+        <!-- Cheetah Savings Sprint Tracker -->
+        <div class="bg-safari-darkleaf/90 border-2 border-safari-gold/50 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🐆</span>
+                        <h2 class="font-display text-2xl font-bold text-safari-gold">Cheetah Savings Sprint</h2>
+                    </div>
+                    <p class="text-xs text-safari-khaki">Log savings to run your mascot towards your target trophy!</p>
+                </div>
+                <button onclick="openGoalModal()" class="bg-safari-gold hover:bg-amber-400 text-safari-bark font-display font-bold px-4 py-2 rounded-2xl shadow-lg transition-transform active:scale-95 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-bullseye"></i> Edit Goal
+                </button>
+            </div>
+
+            <div class="flex justify-between items-end mb-2 text-sm font-semibold">
+                <div>
+                    <span class="text-safari-khaki">Target Goal: </span>
+                    <span id="goal-title-text" class="text-white font-bold">New Headphones</span>
+                </div>
+                <div>
+                    <span id="goal-current-text" class="text-safari-gold font-bold">$0.00</span> /
+                    <span id="goal-target-text" class="text-safari-khaki">$100.00</span>
+                </div>
+            </div>
+
+            <!-- Savannah Running Track -->
+            <div class="relative w-full bg-safari-bark/95 rounded-2xl h-16 p-2 border-2 border-safari-khaki/20 flex items-center overflow-hidden">
+                <div class="absolute inset-x-4 border-b-2 border-dashed border-safari-khaki/30"></div>
+                
+                <div id="cheetah-runner" class="absolute left-2 transition-all duration-700 ease-out flex flex-col items-center" style="left: 2%;">
+                    <div id="cheetah-avatar-icon" class="text-3xl animate-bounce-gentle">🐆</div>
+                </div>
+
+                <div class="absolute right-4 text-3xl">🏁</div>
+            </div>
+
+            <div class="mt-2 flex justify-between text-xs text-safari-khaki/80 font-bold">
+                <span>Start ($0)</span>
+                <span id="goal-percentage-tag" class="text-safari-gold">0% Reached</span>
+                <span>Trophy Unlocked 🎉</span>
+            </div>
+        </div>
+
+        <!-- Interactive Tools Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left: Transaction Logger & Zone Breakdown (2 cols) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Sighting Form -->
+                <div class="bg-safari-darkleaf/90 border-2 border-safari-leaf/80 rounded-3xl p-6 shadow-xl">
+                    <h2 class="font-display text-xl font-bold text-safari-gold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-paw text-safari-sunset"></i> Log a Sighting (Expense/Income)
+                    </h2>
+
+                    <form id="tx-form" onsubmit="handleLogTransaction(event)" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Type</label>
+                                <select id="tx-type" class="w-full bg-safari-bark border-2 border-safari-leaf/60 rounded-xl px-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                                    <option value="expense">💸 Expense (Spent Cash)</option>
+                                    <option value="income">🪙 Income (Added Cash)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Amount ($)</label>
+                                <input type="number" step="0.01" min="0.01" id="tx-amount" placeholder="12.00" required
+                                       class="w-full bg-safari-bark border-2 border-safari-leaf/60 rounded-xl px-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Safari Zone</label>
+                                <select id="tx-category" class="w-full bg-safari-bark border-2 border-safari-leaf/60 rounded-xl px-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-safari-khaki mb-1">Description</label>
+                                <input type="text" id="tx-desc" placeholder="e.g. Cinema Ticket 🍿" required
+                                       class="w-full bg-safari-bark border-2 border-safari-leaf/60 rounded-xl px-3 py-2.5 text-white font-medium focus:outline-none focus:border-safari-gold">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-gradient-to-r from-safari-gold to-safari-sunset hover:from-amber-400 hover:to-orange-400 text-safari-bark font-display font-bold text-lg py-3 rounded-2xl shadow-lg transition-transform active:scale-[0.99] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> Save Sighting
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Safari Zones Budget Categories -->
+                <div class="bg-safari-darkleaf/90 border-2 border-safari-leaf/80 rounded-3xl p-6 shadow-xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-display text-xl font-bold text-safari-gold flex items-center gap-2">
+                            <i class="fa-solid fa-map text-safari-gold"></i> Safari Budget Zones
+                        </h2>
+                        <button onclick="handleAddZone()" class="text-xs bg-safari-leaf hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl transition-all border border-safari-khaki/30">
+                            + Add Zone
+                        </button>
+                    </div>
+
+                    <div id="zones-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Activity Feed & Chart (1 col) -->
+            <div class="space-y-6">
+
+                <!-- Doughnut Chart Breakdown -->
+                <div class="bg-safari-darkleaf/90 border-2 border-safari-leaf/80 rounded-3xl p-6 shadow-xl flex flex-col items-center">
+                    <h2 class="font-display text-lg font-bold text-safari-gold mb-3 w-full text-left flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> Zone Spending
+                    </h2>
+                    <div class="relative w-44 h-44 flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Transaction Log History -->
+                <div class="bg-safari-darkleaf/90 border-2 border-safari-leaf/80 rounded-3xl p-6 shadow-xl">
+                    <h2 class="font-display text-lg font-bold text-safari-gold mb-4 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-binoculars"></i> Recent Sightings</span>
+                        <span id="tx-count-tag" class="text-xs font-body font-normal bg-safari-bark px-2 py-0.5 rounded-full text-safari-khaki">0 items</span>
+                    </h2>
+
+                    <div id="history-list" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Safari Badges & Trophies -->
+        <div class="bg-safari-darkleaf/90 border-2 border-safari-gold/50 rounded-3xl p-6 shadow-2xl mb-8">
+            <div class="mb-4">
+                <h2 class="font-display text-2xl font-bold text-safari-gold flex items-center gap-2">
+                    🏆 Safari Trophies & Achievements
+                </h2>
+                <p class="text-xs text-safari-khaki">Build good spending habits to earn ranger badges!</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="badges-grid">
+                <!-- Badges dynamically rendered -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modals -->
+    <!-- Edit Monthly Allowance Modal -->
+    <div id="income-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-safari-darkleaf border-2 border-safari-gold rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="font-display text-xl font-bold text-safari-gold mb-2">Edit Monthly Allowance</h3>
+            <p class="text-xs text-safari-khaki mb-4">Set your starting base allowance or pocket money.</p>
+            <input type="number" id="income-modal-input" step="5" class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl p-3 text-white font-bold text-lg mb-4 focus:outline-none focus:border-safari-gold">
+            <div class="flex gap-3">
+                <button onclick="closeModal('income-modal')" class="flex-1 bg-safari-bark text-safari-khaki font-bold py-2.5 rounded-xl">Cancel</button>
+                <button onclick="saveIncomeModal()" class="flex-1 bg-safari-gold text-safari-bark font-bold py-2.5 rounded-xl">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Savings Goal Modal -->
+    <div id="goal-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-safari-darkleaf border-2 border-safari-gold rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="font-display text-xl font-bold text-safari-gold mb-2">Edit Cheetah Sprint Goal</h3>
+            <div class="space-y-3 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-safari-khaki mb-1">Target Item Name</label>
+                    <input type="text" id="goal-title-input" placeholder="e.g. New Headphones" class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl p-2.5 text-white font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-safari-khaki mb-1">Target Goal Amount ($)</label>
+                    <input type="number" id="goal-target-input" step="5" placeholder="100" class="w-full bg-safari-bark border-2 border-safari-leaf rounded-xl p-2.5 text-white font-medium">
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeModal('goal-modal')" class="flex-1 bg-safari-bark text-safari-khaki font-bold py-2.5 rounded-xl">Cancel</button>
+                <button onclick="saveGoalModal()" class="flex-1 bg-safari-gold text-safari-bark font-bold py-2.5 rounded-xl">Save Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div id="avatar-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-safari-darkleaf border-2 border-safari-gold rounded-3xl p-6 w-full max-w-md shadow-2xl text-center">
+            <h3 class="font-display text-xl font-bold text-safari-gold mb-2">Choose Your Safari Mascot</h3>
+            <p class="text-xs text-safari-khaki mb-4">Select your mascot avatar for your ranger profile!</p>
+            
+            <div class="grid grid-cols-4 gap-3 mb-6">
+                <button onclick="selectAvatar('🦁')" class="text-3xl bg-safari-bark p-3 rounded-2xl hover:bg-safari-gold/20 border-2 border-transparent hover:border-safari-gold">🦁</button>
+                <button onclick="selectAvatar('🐆')" class="text-3xl bg-safari-bark p-3 rounded-2xl hover:bg-safari-gold/20 border-2 border-transparent hover:border-safari-gold">🐆</button>
+                <button onclick="selectAvatar('🐘')" class="text-3xl bg-safari-bark p-3 rounded-2xl hover:bg-safari-gold/20 border-2 border-transparent hover:border-safari-gold">🐘</button>
+                <button onclick="selectAvatar('🦓')" class="text-3xl bg-safari-bark p-3 rounded-2xl hover:bg-safari-gold/20 border-2 border-transparent hover:border-safari-gold">🦓</button>
+            </div>
+
+            <button onclick="closeModal('avatar-modal')" class="w-full bg-safari-bark text-safari-khaki font-bold py-2 rounded-xl">Close</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-safari-khaki/50 py-4 border-t border-safari-khaki/10 mt-auto">
+        Budget Safari © 2026 • Master Your Money Adventure! 🦁
+    </footer>
+
+    <script>
+        // Storage Key Constants
+        const USERS_STORAGE_KEY = 'budget_safari_users';
+        const SESSION_STORAGE_KEY = 'budget_safari_current_session';
+
+        // Global State
+        let currentUser = null;
+        let soundEnabled = true;
+        let chartInstance = null;
+        let authMode = 'login'; // 'login' or 'signup'
+
+        // Default categories template for new accounts
+        const DEFAULT_CATEGORIES = [
+            { id: 'cat-1', name: 'Snacks & Treats 🍿', budget: 35, color: '#FF8C42' },
+            { id: 'cat-2', name: 'Gaming & Apps 🎮', budget: 40, color: '#E5A93C' },
+            { id: 'cat-3', name: 'Outings with Friends 🍕', budget: 45, color: '#D96B43' },
+            { id: 'cat-4', name: 'Cheetah Savings Trek 🪙', budget: 30, color: '#3A6B4C' }
+        ];
+
+        // Default badges template
+        const DEFAULT_BADGES = [
+            { id: 'b1', title: 'First Sighting', desc: 'Log your very first transaction', icon: '🐾', unlocked: false },
+            { id: 'b2', title: 'Savannah Saver', desc: 'Keep expenses under 60% of allowance', icon: '🌿', unlocked: false },
+            { id: 'b3', title: 'Cheetah Runner', desc: 'Save at least 25% toward your goal', icon: '🐆', unlocked: false },
+            { id: 'b4', title: 'Master Ranger', desc: 'Log 5 or more sightings', icon: '👑', unlocked: false }
+        ];
+
+        // Audio Effects Generator
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'add') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(640, ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.12);
+                } else if (type === 'unlock') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523, ctx.currentTime);
+                    osc.frequency.setValueAtTime(659, ctx.currentTime + 0.08);
+                    osc.frequency.setValueAtTime(783, ctx.currentTime + 0.16);
+                    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                }
+            } catch (e) {
+                console.log('Audio Context muted');
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-icon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+        }
+
+        // Auth Logic
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'signup' : 'login';
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+
+            document.getElementById('auth-error').classList.add('hidden');
+            document.getElementById('signup-error').classList.add('hidden');
+
+            if (authMode === 'signup') {
+                title.innerText = 'Ranger Sign Up';
+                subtitle.innerText = 'Start your teen budgeting journey today!';
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                toggleBtn.innerText = 'Already have an account? Log In';
+            } else {
+                title.innerText = 'Ranger Login';
+                subtitle.innerText = 'Welcome back to your budgeting safari adventure!';
+                signupForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                toggleBtn.innerText = 'Need an account? Sign Up Here';
+            }
+        }
+
+        function togglePasswordVisibility(inputId) {
+            const field = document.getElementById(inputId);
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
+
+        function getAllUsers() {
+            const raw = localStorage.getItem(USERS_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const username = document.getElementById('signup-username').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const allowance = parseFloat(document.getElementById('signup-allowance').value) || 150;
+            const errorDiv = document.getElementById('signup-error');
+
+            if (!username || !password) {
+                errorDiv.innerText = 'Please complete all fields.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            const users = getAllUsers();
+            if (users[username.toLowerCase()]) {
+                errorDiv.innerText = 'That Ranger username is already taken!';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Create New Account Object
+            const newUser = {
+                username,
+                password, // Note: In a production server app password should be hashed
+                avatar: '🦁',
+                monthlyIncome: allowance,
+                streakDays: 1,
+                goal: { title: 'New Headphones', target: 100 },
+                categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+                transactions: [
+                    { id: 'tx-init-1', type: 'income', amount: allowance, categoryId: 'cat-4', desc: 'Starting Pocket Allowance 🪙', date: new Date().toLocaleDateString() },
+                    { id: 'tx-init-2', type: 'expense', amount: 8.50, categoryId: 'cat-1', desc: 'Boba Tea treat 🧋', date: new Date().toLocaleDateString() }
+                ],
+                badges: JSON.parse(JSON.stringify(DEFAULT_BADGES))
+            };
+
+            users[username.toLowerCase()] = newUser;
+            saveUsers(users);
+
+            // Log user in
+            loginUser(newUser);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('auth-error');
+
+            const users = getAllUsers();
+            const user = users[username.toLowerCase()];
+
+            if (!user || user.password !== password) {
+                errorDiv.innerText = 'Invalid username or passcode!';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            loginUser(user);
+        }
+
+        function loginUser(user) {
+            currentUser = user;
+            localStorage.setItem(SESSION_STORAGE_KEY, user.username.toLowerCase());
+
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('user-header-section').classList.remove('hidden');
+            document.getElementById('streak-badge').classList.remove('hidden');
+            document.getElementById('user-display-name').innerText = `Ranger ${user.username}`;
+
+            renderAll();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem(SESSION_STORAGE_KEY);
+
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('user-header-section').classList.add('hidden');
+            document.getElementById('streak-badge').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+        }
+
+        function saveCurrentUserData() {
+            if (!currentUser) return;
+            const users = getAllUsers();
+            users[currentUser.username.toLowerCase()] = currentUser;
+            saveUsers(users);
+        }
+
+        // UI Render Functions
+        function renderAll() {
+            if (!currentUser) return;
+
+            document.getElementById('header-avatar').innerText = currentUser.avatar || '🦁';
+            document.getElementById('cheetah-avatar-icon').innerText = currentUser.avatar || '🐆';
+            document.getElementById('streak-counter-text').innerText = `${currentUser.streakDays || 1} Day Streak`;
+
+            renderOverview();
+            renderCategoriesDropdown();
+            renderZonesList();
+            renderSightingsHistory();
+            renderGoalTracker();
+            renderBadges();
+            updateChart();
+            evaluateBadges();
+        }
+
+        function renderOverview() {
+            const totalSpent = currentUser.transactions
+                .filter(t => t.type === 'expense')
+                .reduce((acc, t) => acc + t.amount, 0);
+
+            const extraIncome = currentUser.transactions
+                .filter(t => t.type === 'income')
+                .reduce((acc, t) => acc + t.amount, 0);
+
+            const totalFunds = currentUser.monthlyIncome + extraIncome;
+            const remaining = totalFunds - totalSpent;
+            const spentPercent = totalFunds > 0 ? Math.min(100, Math.round((totalSpent / totalFunds) * 100)) : 0;
+
+            document.getElementById('display-income').innerText = `$${totalFunds.toFixed(2)}`;
+            document.getElementById('display-spent').innerText = `$${totalSpent.toFixed(2)}`;
+            document.getElementById('display-remaining').innerText = `$${remaining.toFixed(2)}`;
+
+            document.getElementById('spent-progress-bar').style.width = `${spentPercent}%`;
+            document.getElementById('spent-percent-tag').innerText = `${spentPercent}%`;
+
+            const statusMsg = document.getElementById('remaining-status-msg');
+            if (remaining < 15) {
+                statusMsg.innerText = '⚠️ Low funds alert! Watch out on the trail!';
+                statusMsg.className = 'text-xs text-amber-400 font-bold';
+            } else {
+                statusMsg.innerText = 'You are in full control of your cash!';
+                statusMsg.className = 'text-xs text-safari-khaki';
+            }
+        }
+
+        function renderCategoriesDropdown() {
+            const select = document.getElementById('tx-category');
+            select.innerHTML = currentUser.categories.map(c => 
+                `<option value="${c.id}">${c.name}</option>`
+            ).join('');
+        }
+
+        function renderZonesList() {
+            const container = document.getElementById('zones-list');
+            container.innerHTML = currentUser.categories.map(cat => {
+                const spentInCat = currentUser.transactions
+                    .filter(t => t.type === 'expense' && t.categoryId === cat.id)
+                    .reduce((acc, t) => acc + t.amount, 0);
+
+                const percent = Math.min(100, Math.round((spentInCat / cat.budget) * 100));
+
+                return `
+                    <div class="bg-safari-bark/90 border border-safari-khaki/20 p-4 rounded-2xl">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-bold text-sm text-safari-gold">${cat.name}</span>
+                            <span class="text-xs font-semibold text-safari-khaki">$${spentInCat.toFixed(2)} / $${cat.budget}</span>
+                        </div>
+                        <div class="w-full bg-safari-leaf/40 h-2.5 rounded-full overflow-hidden border border-safari-khaki/10">
+                            <div class="h-full rounded-full transition-all duration-500" style="width: ${percent}%; background-color: ${cat.color}"></div>
+                        </div>
+                        <div class="mt-2 text-right">
+                            <span class="text-[10px] text-safari-khaki/70">${percent}% utilized</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSightingsHistory() {
+            const container = document.getElementById('history-list');
+            document.getElementById('tx-count-tag').innerText = `${currentUser.transactions.length} items`;
+
+            if (currentUser.transactions.length === 0) {
+                container.innerHTML = `<p class="text-xs text-safari-khaki/60 italic text-center py-4">No sightings logged yet.</p>`;
+                return;
+            }
+
+            container.innerHTML = currentUser.transactions.slice().reverse().map(tx => {
+                const cat = currentUser.categories.find(c => c.id === tx.categoryId) || { name: 'General' };
+                const isExpense = tx.type === 'expense';
+
+                return `
+                    <div class="flex items-center justify-between p-3 bg-safari-bark/80 border border-safari-khaki/10 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm ${isExpense ? 'bg-safari-terracotta/20 text-safari-sunset border border-safari-terracotta/40' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'}">
+                                ${isExpense ? '💸' : '🪙'}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">${escapeHtml(tx.desc)}</p>
+                                <span class="text-[10px] text-safari-khaki/70 block">${cat.name} • ${tx.date}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-display font-bold text-sm ${isExpense ? 'text-safari-sunset' : 'text-emerald-400'}">
+                                ${isExpense ? '-' : '+'}$${tx.amount.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderGoalTracker() {
+            const savingsInTrek = currentUser.transactions
+                .filter(t => t.categoryId === 'cat-4' && t.type === 'expense')
+                .reduce((acc, t) => acc + t.amount, 0);
+
+            const target = currentUser.goal.target || 100;
+            const percent = Math.min(100, Math.round((savingsInTrek / target) * 100));
+
+            document.getElementById('goal-title-text').innerText = currentUser.goal.title;
+            document.getElementById('goal-current-text').innerText = `$${savingsInTrek.toFixed(2)}`;
+            document.getElementById('goal-target-text').innerText = `$${target.toFixed(2)}`;
+            document.getElementById('goal-percentage-tag').innerText = `${percent}% Reached`;
+
+            const runner = document.getElementById('cheetah-runner');
+            const pos = Math.max(2, Math.min(88, percent));
+            runner.style.left = `${pos}%`;
+        }
+
+        function renderBadges() {
+            const container = document.getElementById('badges-grid');
+            container.innerHTML = currentUser.badges.map(b => `
+                <div class="p-4 rounded-2xl border ${b.unlocked ? 'bg-safari-bark/90 border-safari-gold shadow-lg' : 'bg-safari-bark/40 border-safari-khaki/10 badge-locked'} text-center flex flex-col items-center">
+                    <div class="text-3xl mb-1">${b.icon}</div>
+                    <div class="font-display font-bold text-xs text-safari-gold mb-1">${b.title}</div>
+                    <div class="text-[10px] text-safari-khaki/80 leading-tight">${b.desc}</div>
+                </div>
+            `).join('');
+        }
+
+        function handleLogTransaction(e) {
+            e.preventDefault();
+            const type = document.getElementById('tx-type').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const categoryId = document.getElementById('tx-category').value;
+            const desc = document.getElementById('tx-desc').value;
+
+            if (!amount || amount <= 0 || !desc.trim()) return;
+
+            const newTx = {
+                id: 'tx-' + Date.now(),
+                type,
+                amount,
+                categoryId,
+                desc: desc.trim(),
+                date: new Date().toLocaleDateString()
+            };
+
+            currentUser.transactions.push(newTx);
+            playSound('add');
+
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-desc').value = '';
+
+            saveCurrentUserData();
+            renderAll();
+        }
+
+        function evaluateBadges() {
+            let newlyUnlocked = false;
+
+            // Badge 1: First Sighting
+            const b1 = currentUser.badges.find(b => b.id === 'b1');
+            if (b1 && !b1.unlocked && currentUser.transactions.length >= 1) {
+                b1.unlocked = true;
+                newlyUnlocked = true;
+            }
+
+            // Badge 4: Master Ranger (5+ sightings)
+            const b4 = currentUser.badges.find(b => b.id === 'b4');
+            if (b4 && !b4.unlocked && currentUser.transactions.length >= 5) {
+                b4.unlocked = true;
+                newlyUnlocked = true;
+            }
+
+            if (newlyUnlocked) {
+                playSound('unlock');
+                saveCurrentUserData();
+            }
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const catData = currentUser.categories.map(cat => {
+                return currentUser.transactions
+                    .filter(t => t.type === 'expense' && t.categoryId === cat.id)
+                    .reduce((acc, t) => acc + t.amount, 0);
+            });
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: currentUser.categories.map(c => c.name),
+                    datasets: [{
+                        data: catData,
+                        backgroundColor: currentUser.categories.map(c => c.color),
+                        borderWidth: 2,
+                        borderColor: '#2C1E16'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '68%'
+                }
+            });
+        }
+
+        // Modal Helpers
+        function openSetIncomeModal() {
+            document.getElementById('income-modal-input').value = currentUser.monthlyIncome;
+            document.getElementById('income-modal').classList.remove('hidden');
+        }
+
+        function saveIncomeModal() {
+            const val = parseFloat(document.getElementById('income-modal-input').value);
+            if (val && val >= 0) {
+                currentUser.monthlyIncome = val;
+                saveCurrentUserData();
+                renderAll();
+            }
+            closeModal('income-modal');
+        }
+
+        function openGoalModal() {
+            document.getElementById('goal-title-input').value = currentUser.goal.title;
+            document.getElementById('goal-target-input').value = currentUser.goal.target;
+            document.getElementById('goal-modal').classList.remove('hidden');
+        }
+
+        function saveGoalModal() {
+            const title = document.getElementById('goal-title-input').value;
+            const target = parseFloat(document.getElementById('goal-target-input').value);
+            if (title && target > 0) {
+                currentUser.goal = { title, target };
+                saveCurrentUserData();
+                renderAll();
+            }
+            closeModal('goal-modal');
+        }
+
+        function handleAddZone() {
+            const name = prompt("Enter new Safari Zone category name (e.g. Books 📚):");
+            if (!name) return;
+            const budget = parseFloat(prompt("Enter target limit ($):") || '30');
+
+            const newCat = {
+                id: 'cat-' + Date.now(),
+                name,
+                budget: budget || 30,
+                color: '#' + Math.floor(Math.random()*16777215).toString(16)
+            };
+
+            currentUser.categories.push(newCat);
+            saveCurrentUserData();
+            renderAll();
+        }
+
+        function openAvatarModal() {
+            document.getElementById('avatar-modal').classList.remove('hidden');
+        }
+
+        function selectAvatar(emoji) {
+            currentUser.avatar = emoji;
+            saveCurrentUserData();
+            renderAll();
+            closeModal('avatar-modal');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        // Auto Load Existing Session on Startup
+        window.onload = function() {
+            const activeUsername = localStorage.getItem(SESSION_STORAGE_KEY);
+            if (activeUsername) {
+                const users = getAllUsers();
+                if (users[activeUsername]) {
+                    loginUser(users[activeUsername]);
+                    return;
+                }
+            }
+        };
+    </script>
+</body>
+</html>
